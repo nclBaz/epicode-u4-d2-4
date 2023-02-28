@@ -14,6 +14,7 @@ import Express from "express" // 3RD PARTY MODULE (npm i express)
 import fs from "fs" // CORE MODULE (no need to install it!!!!)
 import { fileURLToPath } from "url" // CORE MODULE
 import { dirname, join } from "path" // CORE MODULE
+import uniqid from "uniqid"
 
 const usersRouter = Express.Router() // an Express Router is a set of similar endpoints grouped in the same collection
 
@@ -35,7 +36,24 @@ console.log("TARGET:", join(dirname(fileURLToPath(import.meta.url)), "users.json
 
 // 1.
 usersRouter.post("/", (req, res) => {
-  res.send({ message: "Hello I am the POST ENDPOINT" })
+  // 1. Read the request body
+  // console.log("REQUEST BODY:", req.body) // DO NOT FORGET TO ADD EXPRESS.JSON INTO SERVER.JS!!!!!!!!!!!!!!!!
+  // 2. Add some server generated info (unique id, createdAt, ...)
+  const newUser = { ...req.body, createdAt: new Date(), updatedAt: new Date(), id: uniqid() }
+
+  // 3. Save new user into users.json file
+
+  // 3.1 Read the content of the file, obtaining an array
+  const users = JSON.parse(fs.readFileSync(usersJSONPath))
+
+  // 3.2 Add the new user to the array
+  users.push(newUser)
+
+  // 3.3 Write the array back to the file
+  fs.writeFileSync(usersJSONPath, JSON.stringify(users)) // we cannot pass an array here, it needs to be converted into a string
+
+  // 4. Send back a proper response
+  res.status(201).send({ id: newUser.id })
 })
 
 // 2.
