@@ -60,10 +60,10 @@ usersRouter.post("/", (req, res) => {
 usersRouter.get("/", (req, res) => {
   // 1. Read the content of users.json file
   const fileContentAsBuffer = fs.readFileSync(usersJSONPath) // This is going to give us back a BUFFER object, which is a MACHINE READABLE FORMAT
-  console.log("FILE CONTENT:", fileContentAsBuffer)
+  //console.log("FILE CONTENT:", fileContentAsBuffer)
 
   // 2. We shall convert the buffer into an array
-  console.log("FILE CONTENT AS ARRAY:", JSON.parse(fileContentAsBuffer))
+  //console.log("FILE CONTENT AS ARRAY:", JSON.parse(fileContentAsBuffer))
   const users = JSON.parse(fileContentAsBuffer)
 
   // 3. Send the array of users back as response
@@ -72,7 +72,17 @@ usersRouter.get("/", (req, res) => {
 
 // 3.
 usersRouter.get("/:userId", (req, res) => {
-  res.send({ message: "Hello I am the GET SINGLE USER ENDPOINT" })
+  // 1. Extract the userId from the URL
+  //console.log("USER ID:", req.params.userId)
+
+  // 2. Read users.json file --> obtaining an array
+  const users = JSON.parse(fs.readFileSync(usersJSONPath))
+
+  // 3. Search for the specified user into the array
+  const user = users.find(user => user.id === req.params.userId)
+
+  // 4. Send the found user as a response
+  res.send(user)
 })
 
 // 4.
