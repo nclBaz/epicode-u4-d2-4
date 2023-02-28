@@ -44,13 +44,13 @@ usersRouter.post("/", (req, res) => {
   // 3. Save new user into users.json file
 
   // 3.1 Read the content of the file, obtaining an array
-  const users = JSON.parse(fs.readFileSync(usersJSONPath))
+  const usersArray = JSON.parse(fs.readFileSync(usersJSONPath))
 
   // 3.2 Add the new user to the array
-  users.push(newUser)
+  usersArray.push(newUser)
 
   // 3.3 Write the array back to the file
-  fs.writeFileSync(usersJSONPath, JSON.stringify(users)) // we cannot pass an array here, it needs to be converted into a string
+  fs.writeFileSync(usersJSONPath, JSON.stringify(usersArray)) // we cannot pass an array here, it needs to be converted into a string
 
   // 4. Send back a proper response
   res.status(201).send({ id: newUser.id })
@@ -64,10 +64,10 @@ usersRouter.get("/", (req, res) => {
 
   // 2. We shall convert the buffer into an array
   //console.log("FILE CONTENT AS ARRAY:", JSON.parse(fileContentAsBuffer))
-  const users = JSON.parse(fileContentAsBuffer)
+  const usersArray = JSON.parse(fileContentAsBuffer)
 
   // 3. Send the array of users back as response
-  res.send(users)
+  res.send(usersArray)
 })
 
 // 3.
@@ -76,19 +76,46 @@ usersRouter.get("/:userId", (req, res) => {
   //console.log("USER ID:", req.params.userId)
 
   // 2. Read users.json file --> obtaining an array
-  const users = JSON.parse(fs.readFileSync(usersJSONPath))
+  const usersArray = JSON.parse(fs.readFileSync(usersJSONPath))
 
   // 3. Search for the specified user into the array
-  const user = users.find(user => user.id === req.params.userId)
+  const user = usersArray.find(user => user.id === req.params.userId)
 
   // 4. Send the found user as a response
   res.send(user)
 })
 
 // 4.
-usersRouter.put("/:userId", (req, res) => {})
+usersRouter.put("/:userId", (req, res) => {
+  // 1. Read the file obtaining an array
+  const usersArray = JSON.parse(fs.readFileSync(usersJSONPath))
+
+  // 2. Modify the specified user by merging previous properties with the properties coming from req.body
+  const index = usersArray.findIndex(user => user.id === req.params.userId)
+  const oldUser = usersArray[index]
+  const updatedUser = { ...oldUser, ...req.body, updatedAt: new Date() }
+  usersArray[index] = updatedUser
+
+  // 3. Save the modified array back to disk
+  fs.writeFileSync(usersJSONPath, JSON.stringify(usersArray))
+
+  // 4. Send back a proper response
+  res.send(updatedUser)
+})
 
 // 5.
-usersRouter.delete("/:userId", (req, res) => {})
+usersRouter.delete("/:userId", (req, res) => {
+  // 1. Read the file obtaining an array
+  const usersArray = JSON.parse(fs.readFileSync(usersJSONPath))
+
+  // 2. Filter out the specified user from the array, keep just the remaining users
+  const remainingUsers = usersArray.filter(user => user.id !== req.params.userId) // ! = =
+
+  // 3. Save the array of remaining users back to the file
+  fs.writeFileSync(usersJSONPath, JSON.stringify(remainingUsers))
+
+  // 4. Send back a proper response
+  res.status(204).send()
+})
 
 export default usersRouter // DO NOT FORGET TO EXPORT THIS!!!
